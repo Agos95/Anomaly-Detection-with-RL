@@ -138,19 +138,19 @@ class AnomalyDetectionEnv(gym.Env):
         # MOVE TO NEXT STATE s_t1 #
         # ####################### #
 
-        next_state = None
+        # just go to next state without any particular logic
+        next_state = current_state + 1
 
         # ########## #
         # GET REWARD #
         # ########## #
 
-        reward = None
+        reward =
 
         # move to next state
         self.state = next_state
 
-        # in this case episode never ends
-        done = False
+        done = (self.state == (self.n - 1))
 
         # info
         info = {
