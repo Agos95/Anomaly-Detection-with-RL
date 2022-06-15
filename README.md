@@ -21,7 +21,8 @@ because the decision of normal or abnormal at the current time step will change 
 
 - **State**: a single state is a time series with $n$ time steps [$s_i, \dots, s_{i+t}$] with an associated label 0/1 that represents a normal/abnormal behaviour. Maybe it is also possible to construct a second part of the state $s_{actions} = [a_i, \dots, a_{i+n}]$ which collects the sequence of previous actions.  
 In our case, the idea is for instance to aggregate the dataset in 1 minute timestamps, and then to create time series of 1 hour of duration.  
-*How to define the label? Either use timeseries of Sunday [9:00-16:00] as anomalous or just look at the last timestamp if it is in the givern range* 
+    - *How to define the label? Either use timeseries of Sunday [9:00-16:00] as anomalous or just look at the last timestamp if it is in the givern range* 
+    - *Or we can assign a binary label to each timestamp of the timeseries*
 - **Action**: the action space is $A=\{0,1\}$, where 0 is normal and 1 is anomaly.
 - **Reward**: 
 $$
@@ -42,7 +43,7 @@ Points are taken from slide 17 (`ML4MobCom_04c`).
 
 1. *Preprocess and feed the state s to our DQN, which will return the Q-values of all possible actions in the state*
     - state *s* is a time series
-    - DQN is LSTM Network with binary prob output $\to$ it returns Q-values for the 2 possible actions
+    - DQN is LSTM Network with binary prob output $\to$ it returns Q-values for the 2 possible actions (or a binary value for each timestamp?)
 2. *Select an action using the epsilon-greedy policy*
     - Actions are $\{0,1\}$: with probability $1-\epsilon$ choose max Q-value from DQN, otherwise random
 3. *Perform action in s and move to s' to receive reward. Store transition $\langle s, a, r, s' \rangle$ to replay buffer*.
@@ -59,3 +60,10 @@ Points are taken from slide 17 (`ML4MobCom_04c`).
     - update target DQN copying DQN state every N iters
 7. *Repeat these steps for M number of episodes*
 
+---
+
+## References
+
+- [Introduction to Reinforcement Learning (RL) in PyTorch](https://medium.com/analytics-vidhya/introduction-to-reinforcement-learning-rl-in-pytorch-c0862989cc0e)
+- [DPLAN implementation](https://github.com/lflfdxfn/DPLAN-Implementation) (from *Toward Deep Supervised Anomaly Detection: Reinforcement Learning from Partially Labeled Anomaly Data*)
+- [Deep Q-network with Pytorch and Gym to solve the Acrobot game](https://towardsdatascience.com/deep-q-network-with-pytorch-and-gym-to-solve-acrobot-game-d677836bda9b)
