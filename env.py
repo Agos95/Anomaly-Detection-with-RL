@@ -1,6 +1,9 @@
 # %%[markdown]
 
 # [DPLAN implementation](https://github.com/lflfdxfn/DPLAN-Implementation)
+# Paper: Toward Deep Supervised Anomaly Detection: Reinforcement Learning from Partially Labeled Anomaly Data
+
+# see also: https://medium.com/analytics-vidhya/introduction-to-reinforcement-learning-rl-in-pytorch-c0862989cc0e
 
 # %%
 import numpy as np
@@ -13,31 +16,27 @@ from gym.spaces import Discrete
 
 
 class AnomalyDetectionEnv(gym.Env):
-    """
-    Custom environment for Anomaly Detection
-
-    Parameters
-    ----------
-    df : pandas Dataframe
-        Dataframe with the time series as columns.
-    anomaly : list-like, optional
-        List of Timestamps which corresponds to anomalies.
-    columns : list-like, optional
-        List of columns of `df` to use. Default is `None`, which means all the columns.
-    window : str [default="1H"]
-        Size of the temporal window. See pandas documentation for offsets strings.
-    stride : str [default="10min"]
-        Stride between two consecutive temporal windows. See pandas documentation for offsets strings.
-
-
-    """
 
     def __init__(self, df, anomaly, window="1H", stride="10min", columns=None) -> None:
         """
-        Init func
+        Custom environment for Anomaly Detection
+
+        Parameters
+        ----------
+        df : pandas Dataframe
+            Dataframe with the time series as columns.
+        anomaly : list-like, optional
+            List of Timestamps which corresponds to anomalies.
+        columns : list-like, optional
+            List of columns of `df` to use. Default is `None`, which means all the columns.
+        window : str [default="1H"]
+            Size of the temporal window. See pandas documentation for offsets strings.
+        stride : str [default="10min"]
+            Stride between two consecutive temporal windows. See pandas documentation for offsets strings.
         """
         super().__init__()
 
+        # dataset
         self.anomaly = anomaly
         self.window = pd.Timedelta(window)
         self.stride = pd.Timedelta(stride)
@@ -47,8 +46,16 @@ class AnomalyDetectionEnv(gym.Env):
 
         self.observations, self.labels = self._make_sliding_windows(
             self.df, self.window, self.stride, self.anomaly)
+        self.n = len(self.observations)
+        self.ts_length, self.ts_features = self.observations[0].shape
 
-        self.action_space = Discrete(2)  # {0, 1} = {normal, anomaly}
+        # Action Space: {0, 1} = {normal, anomaly}
+        self.action_space = Discrete(2)
+        # Observation Space: each observation is a time series
+        self.observation_space = Discrete(self.n)
+
+        # initial state
+        self.state = None
 
     def _make_sliding_windows(df, window, stride, anomaly=None):
         """
@@ -76,7 +83,7 @@ class AnomalyDetectionEnv(gym.Env):
             List of labels corresponding to each time window.
             A DataFrame is labelled 1 (anomaly) or 0 (normal)
             if the last timestamp is in `anomaly` or not.
-            Only provided is `anomaly` is not `None`.
+            It is empty if `anomaly` is `None`.
 
         """
 
@@ -86,23 +93,70 @@ class AnomalyDetectionEnv(gym.Env):
         t0 = start
         t1 = start + window
 
-        dfs = []
+        dfs, y = [], []
         while t1 < end:
             dfs.append(df.loc[t0:t1, :])
             t0 = t0 + stride
             t1 = t0 + window
 
         if anomaly is not None:
-            y = []
             for df in dfs:
                 last = df.index.max()
                 an = 1 if last in anomaly else 0
                 y.append(an)
 
-            return dfs, y
+        return dfs, y
 
-        return dfs
+    def reset(self, seed=None):
+        super().reset(seed=seed)
+        self.state = None
+        return
 
     def step(self, action):
+        """
+        Parameters
+        ----------
+        action : int
+            Action chosen by the agent.
 
-        return observation, reward, done, info
+        Returns
+        -------
+        next_state : int
+            Next state from `self.observation_space`, which corresponds to an index of `self.observations`.
+        reward : float
+            Reward returned as result for the chosen action.
+        done : bool
+            True if the episode has ended. Always False in this implementation.
+        info : dict
+            Additional information.
+        """
+
+        # store current state
+        current_state = self.state
+
+        # ####################### #
+        # MOVE TO NEXT STATE s_t1 #
+        # ####################### #
+
+        next_state = None
+
+        # ########## #
+        # GET REWARD #
+        # ########## #
+
+        reward = None
+
+        # move to next state
+        self.state = next_state
+
+        # in this case episode never ends
+        done = False
+
+        # info
+        info = {
+            "State (t)": current_state,
+            "Action (t)": action,
+            "State (t+1)": next_state,
+        }
+
+        return next_state, reward, done, info
