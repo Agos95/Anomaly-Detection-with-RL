@@ -1,0 +1,15 @@
+{
+    "window": "1H",
+    "stride": "10min",
+    "replay_mememory_capacity": 1000,
+    "lr": 1e-03,
+    "batch_size": 64,
+    "hidden_lstm_dim": 50,
+    "linear_dim": 100,
+    "dropout": 0.2,
+    "lstm_kwargs": {
+        "num_lstm_layers": 1,
+        "lstm_dropout": 0,
+        "lstm_bidirectional": false
+    }
+}
