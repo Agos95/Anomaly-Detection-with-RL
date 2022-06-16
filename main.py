@@ -1,10 +1,13 @@
 # %%
+import argparse
 from os.path import join
 import json
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 import torch
 
+from dataset import TSDataset
 from env import AnomalyDetectionEnv
 from agent import DQN
 from policy import EpsilonGreedyPolicy
@@ -13,33 +16,43 @@ from memory import ReplayMemory
 
 # %%
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config", type=str,
+                        default="config/config.json", help="Configuration file")
+    args = parser.parse_args()
+    return vars(args)
 
-def main():
-    # read data
-    df = pd.read_csv(join("data", "rastro_1min.tar.gz"),
-                     parse_dates=[0], index_col=0)
-    with open(join("config", "config.json"), "r") as f:
-        config = json.load(f)
-    # known anomalies
-    anomaly = pd.date_range(start="2016/07/03 09:00:00",
-                            end="2016/07/03 16:00:00", freq="1min").tolist() + \
-        pd.date_range(start="2016/07/10 09:00:00",
-                      end="2016/07/10 16:00:00", freq="1min").tolist() + \
-        pd.date_range(start="2016/07/17 09:00:00",
-                      end="2016/07/17 16:00:00", freq="1min").tolist() + \
-        pd.date_range(start="2016/07/24 09:00:00",
-                      end="2016/07/24 16:00:00", freq="1min").tolist()
 
-    # create custom gym Env
-    env = AnomalyDetectionEnv(
-        df=df, anomaly=anomaly, window=config["window"], stride=config["stride"], columns=None)
+def main(args):
 
+    with open(args["config"], "r") as f:
+        cfg = json.load(f)
+
+    # load and prepare dataset
+    data = TSDataset(join("data", "rastro.tar.gz"), **cfg["data"])
+    scaler = MinMaxScaler() if cfg["train_test"].pop("scaler") else None
+    X_train, X_test, y_train, y_test = data.train_test_split(
+        **cfg["train_test"])
+
+    # environment
+    env = AnomalyDetectionEnv(X_train, y_train, **cfg["env"])
+
+    # agent & dqn stuff
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    output_dim = 2 if cfg["data"]["label_type"] == "last" else X_train.shape[1]
+    policy_net = DQN(n_features=X_train.shape[2],
+                     output_dim=output_dim, **cfg["agent"])
+    target_net = DQN(n_features=X_train.shape[2],
+                     output_dim=output_dim, **cfg["agent"])
+    target_net.load_state_dict(policy_net.state_dict())
 
-    agent = DQN(n_features=df.shape[1], hidden_lstm_dim=config["hidden_lstm_dim"], linear_dim=config["linear_dim"],
-                output_dim=2, dropout=config["dropout"], lstm_kwargs=config["lstm_kwargs"])
+    optimizer = torch.optim.Adam(policy_net.parameters(), **cfg["optimizer"])
+    # softmax + BCELoss (since our network does not have softmax layer at the end)
+    loss_fn = torch.nn.BCEWithLogitsLoss(reduction="sum")
 
 
 # %%
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    main(args)

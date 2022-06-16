@@ -1,15 +1,39 @@
 {
-    "window": "1H",
-    "stride": "10min",
+    "data": {
+        "resample": "5min",
+        "window": "2H",
+        "stride": "10min",
+        "label_type": "last",
+        "columns": [
+            "overallusers",
+            "overallrbdw",
+            "overallrbdwmean"
+        ]
+    },
+    "train_test": {
+        "test_size": 0.25,
+        "force_sequential": false,
+        "scaler": true,
+        "seed": 0
+    },
     "replay_mememory_capacity": 1000,
-    "lr": 1e-03,
-    "batch_size": 64,
-    "hidden_lstm_dim": 50,
-    "linear_dim": 100,
-    "dropout": 0.2,
-    "lstm_kwargs": {
-        "num_lstm_layers": 1,
-        "lstm_dropout": 0,
-        "lstm_bidirectional": false
+    "policy_net": {
+        "hidden_lstm_dim": 25,
+        "linear_dim": 50,
+        "dropout": 0.2,
+        "lstm_kwargs": {
+            "num_lstm_layers": 1,
+            "lstm_dropout": 0,
+            "lstm_bidirectional": false
+        }
+    },
+    "env": {
+        "w_tn": 5,
+        "w_fp": -1,
+        "w_fn": -1,
+        "w_tp": 5
+    },
+    "optimizer": {
+        "lr": 1e-03
     }
 }

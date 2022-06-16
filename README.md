@@ -64,6 +64,11 @@ Points are taken from slide 17 (`ML4MobCom_04c`).
 
 ## References
 
-- [Introduction to Reinforcement Learning (RL) in PyTorch](https://medium.com/analytics-vidhya/introduction-to-reinforcement-learning-rl-in-pytorch-c0862989cc0e)
-- [DPLAN implementation](https://github.com/lflfdxfn/DPLAN-Implementation) (from *Toward Deep Supervised Anomaly Detection: Reinforcement Learning from Partially Labeled Anomaly Data*)
-- [Deep Q-network with Pytorch and Gym to solve the Acrobot game](https://towardsdatascience.com/deep-q-network-with-pytorch-and-gym-to-solve-acrobot-game-d677836bda9b)
+- ***Papers***:
+    - [Toward Deep Supervised Anomaly Detection: Reinforcement Learning from Partially Labeled Anomaly Data](https://arxiv.org/abs/2009.06847) - [Unofficial DPLAN implementation](https://github.com/lflfdxfn/DPLAN-Implementation)
+    - [Policy-based reinforcement learning for time series anomaly detection](https://www.sciencedirect.com/science/article/pii/S0952197620302499)
+    - [RLAD: Time Series Anomaly Detection through Reinforcement Learning and Active Learning](https://arxiv.org/abs/2104.00543)
+- ***Code Examples***:
+    - [Keras-rl - Deep Reinforcement Learning for Keras](https://github.com/keras-rl/keras-rl)
+    - [Introduction to Reinforcement Learning (RL) in PyTorch](https://medium.com/analytics-vidhya/introduction-to-reinforcement-learning-rl-in-pytorch-c0862989cc0e)
+    - [Deep Q-network with Pytorch and Gym to solve the Acrobot game](https://towardsdatascience.com/deep-q-network-with-pytorch-and-gym-to-solve-acrobot-game-d677836bda9b)
