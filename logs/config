@@ -1,3 +1,4 @@
+[2022-06-24 12:26:39,120] [INFO] Configuration file 'config/config.json':
 {
     "data": {
         "resample": "5min",
@@ -33,7 +34,7 @@
         "w_tp": 5
     },
     "optimizer": {
-        "lr": 1e-03
+        "lr": 0.001
     },
     "policy": {
         "epsilon": 1,
@@ -52,3 +53,6 @@
         "target_net_update": 25
     }
 }
+[2022-06-24 12:26:39,120] [INFO] Prepraing the dataset...
+[2022-06-24 12:26:44,074] [INFO] Environment creation...
+[2022-06-24 12:26:44,075] [INFO] Creating policy and target network...

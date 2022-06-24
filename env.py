@@ -52,13 +52,14 @@ class AnomalyDetectionEnv(gym.Env):
         self.reward_weights = np.array([w_tn, w_fp, w_fn, w_tp])
 
         # initial state
-        self.state = 0
+        self.state_index = 0
+        self.state = self.X[self.state_index]
         self.t = 0
 
-    def reset(self, seed=None):
+    def reset(self):
         self._print("Resetting the environment.")
-        super().reset(seed=seed)
-        self.state = 0
+        self.state_index = 0
+        self.state = self.X[self.state_index]
         self.t = 0
         return
 
@@ -82,6 +83,7 @@ class AnomalyDetectionEnv(gym.Env):
         """
 
         # store current state
+        current_state_index = self.state_index
         current_state = self.state
 
         # ####################### #
@@ -89,32 +91,38 @@ class AnomalyDetectionEnv(gym.Env):
         # ####################### #
 
         # just go to next state without any particular logic
-        next_state = current_state + 1
+        # (after last timeseries restart from 0)
+        next_state_index = (current_state_index + 1) % self.n
+        next_state = self.X[next_state_index]
 
         # ########## #
         # GET REWARD #
         # ########## #
 
-        if isinstance(action, int):
+        try:
+            _ = len(action)
+            true_action = self.y[current_state_index]
+        except:
+            action = int(action)
             action = [action]
-            true_action = [self.y[current_state]]
-        else:
-            true_action = self.y[current_state]
+            true_action = [self.y[current_state_index]]
 
         reward = np.sum(self.reward_weights *
                         confusion_matrix(true_action, action, labels=[0, 1]).ravel())
 
         # move to next state
+        self.state_index = next_state_index
         self.state = next_state
-        done = (self.state == self.n)
+        done = False
+        #done = (self.state == self.n)
 
         # info
         info = {
             "t": self.t,
-            "State (t)": current_state,
+            "State (t)": current_state_index,
             "Action (t)": action,
             "Reward (t)": reward,
-            "State (t+1)": next_state,
+            "State (t+1)": next_state_index,
             "Done": done
         }
         self.t += 1
