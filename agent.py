@@ -205,8 +205,7 @@ class DQNSolver(object):
 
     def fit(self):
         for e in trange(self.episodes, desc="Episode"):
-            self.env.reset()
-            state = self.env.state
+            state = self.env.reset()
             done = False
             score = 0
 
@@ -216,7 +215,8 @@ class DQNSolver(object):
                     q_values = self.policy_net(
                         torch.tensor(state, dtype=torch.float).unsqueeze(0).to(self.device))
                 # select next action using the policy
-                action = self.policy.select_action(q_values.squeeze())
+                action = self.policy.select_action(
+                    q_values.detach().cpu().squeeze())
                 # do one step in the env given the chosen action
                 next_state, reward, done, _ = self.env.step(action)
                 score += reward

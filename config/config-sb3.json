@@ -1,0 +1,42 @@
+{
+    "data": {
+        "resample": "5min",
+        "window": "2H",
+        "stride": "5min",
+        "label_type": "last",
+        "columns": [
+            "overallusers",
+            "overallrbdw",
+            "overallrbdwmean"
+        ]
+    },
+    "train_test": {
+        "test_size": 0.25,
+        "force_sequential": true,
+        "scaler": true,
+        "seed": 0
+    },
+    "feature_extractor": {
+        "hidden_lstm_dim": 25,
+        "dropout": 0.2,
+        "linear_dim": 50
+    },
+    "env": {
+        "w_tn": 5,
+        "w_fp": -1,
+        "w_fn": -1,
+        "w_tp": 5
+    },
+    "policy": {
+        "learning_rate": 1e-04,
+        "buffer_size": 10000,
+        "learning_starts": 500,
+        "batch_size": 32,
+        "gamma": 0.99,
+        "train_freq": 5,
+        "target_update_interval": 500,
+        "exploration_fraction": 0.25,
+        "exploration_initial_eps": 1.0,
+        "exploration_final_eps": 0.05
+    }
+}

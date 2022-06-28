@@ -10,10 +10,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 import torch
 from torch.optim import Adam
+from stable_baselines3 import DQN
 
 from dataset import TSDataset
 from env import AnomalyDetectionEnv
-from agent import DQN, DQNSolver
+from stableBaselinev3.model import FeatureExtractor
 
 
 # %%
@@ -21,7 +22,7 @@ from agent import DQN, DQNSolver
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str,
-                        default="config/config.json", help="Configuration file")
+                        default="config/config-sb3.json", help="Configuration file")
     args = parser.parse_args()
     return vars(args)
 
@@ -55,16 +56,14 @@ def main(args):
     logging.info("Creating policy and target network...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_dim = 2 if cfg["data"]["label_type"] == "last" else X_train.shape[1]
-    model_kwargs = {"n_features": X_train.shape[2],
-                    "output_dim": output_dim}
-    model_kwargs.update(cfg["model"])
-
-    # softmax + BCELoss (since our network does not have softmax layer at the end)
-    loss_fn = torch.nn.BCEWithLogitsLoss(reduction="sum")
-
-    solver = DQNSolver(env=train_env, model=DQN,
-                       loss_fn=loss_fn, model_kwargs=model_kwargs, optimizer=Adam, optimizer_kwargs=cfg["optimizer"], **cfg["solver"])
-    solver.fit()
+    features_extractor_kwargs = cfg["feature_extractor"]
+    features_extractor_kwargs["n_features"] = X_train.shape[-1]
+    policy_kwargs = {
+        "features_extractor_class": FeatureExtractor,
+        "features_extractor_kwargs": features_extractor_kwargs
+    }
+    model = DQN("MlpPolicy", env=train_env,
+                policy_kwargs=policy_kwargs, **cfg["policy"])
 
 
 # %%

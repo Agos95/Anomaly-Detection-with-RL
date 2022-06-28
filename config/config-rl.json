@@ -1,0 +1,50 @@
+{
+    "data": {
+        "resample": "5min",
+        "window": "2H",
+        "stride": "5min",
+        "label_type": "last",
+        "columns": [
+            "overallusers",
+            "overallrbdw",
+            "overallrbdwmean"
+        ]
+    },
+    "train_test": {
+        "test_size": 0.25,
+        "force_sequential": true,
+        "scaler": true,
+        "seed": 0
+    },
+    "model": {
+        "lstm_units": 25,
+        "dropout": 0.2,
+        "linear_units": 50
+    },
+    "env": {
+        "w_tn": 5,
+        "w_fp": -1,
+        "w_fn": -1,
+        "w_tp": 5
+    },
+    "optimizer": {
+        "learning_rate": 1e-03
+    },
+    "policy": {
+        "attr": "eps",
+        "value_max": 1,
+        "value_min": 0.05,
+        "value_test": 0,
+        "nb_steps": 5000
+    },
+    "memory": {
+        "limit": 1000,
+        "window_length": 1
+    },
+    "agent": {
+        "batch_size": 32,
+        "nb_steps_warmup": 1000,
+        "train_interval": 1,
+        "target_model_update": 2000
+    }
+}

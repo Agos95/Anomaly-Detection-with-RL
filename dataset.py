@@ -93,6 +93,8 @@ class TSDataset(object):
             Fraction of the dataset to be assigned to the test set.
         force_sequential : bool, default False
             If True force a sequential slit even if `self.label_type=="last"`
+        scaler : sklearn scaler, optional
+            Sklearn sclaer to use to preprocess data.
         seed : int, optional
             Seed for splitting if using the stratified one.
 

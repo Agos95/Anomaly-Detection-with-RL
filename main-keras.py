@@ -8,20 +8,27 @@ import logging
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-import torch
-from torch.optim import Adam
+import tensorflow as tf
+gpus = tf.config.list_physical_devices("GPU")
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+from keras.optimizers import Adam
+from keras.utils import plot_model
+from rl.agents import DQNAgent
+from rl.memory import SequentialMemory
+from rl.policy import EpsGreedyQPolicy, LinearAnnealedPolicy
 
 from dataset import TSDataset
 from env import AnomalyDetectionEnv
-from agent import DQN, DQNSolver
-
+from kerasRL.model import kDQN, CustomProcessor
 
 # %%
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config", type=str,
-                        default="config/config.json", help="Configuration file")
+                        default="config/config-rl.json", help="Configuration file")
     args = parser.parse_args()
     return vars(args)
 
@@ -53,18 +60,21 @@ def main(args):
 
     # agent & dqn stuff
     logging.info("Creating policy and target network...")
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_dim = 2 if cfg["data"]["label_type"] == "last" else X_train.shape[1]
-    model_kwargs = {"n_features": X_train.shape[2],
-                    "output_dim": output_dim}
-    model_kwargs.update(cfg["model"])
+    model_kwargs = cfg["model"]
+    model_kwargs["output_dim"] = output_dim
 
-    # softmax + BCELoss (since our network does not have softmax layer at the end)
-    loss_fn = torch.nn.BCEWithLogitsLoss(reduction="sum")
+    model = kDQN(input_shape=X_train[0].shape, **model_kwargs)
+    plot_model(model, show_shapes=True)
 
-    solver = DQNSolver(env=train_env, model=DQN,
-                       loss_fn=loss_fn, model_kwargs=model_kwargs, optimizer=Adam, optimizer_kwargs=cfg["optimizer"], **cfg["solver"])
-    solver.fit()
+    optimizer = Adam(**cfg["optimizer"])
+    memory = SequentialMemory(**cfg["memory"])
+    policy = LinearAnnealedPolicy(EpsGreedyQPolicy(), **cfg["policy"])
+
+    agent = DQNAgent(model=model, nb_actions=train_env.action_space.n, processor=CustomProcessor(),
+                     memory=memory, policy=policy, **cfg["agent"])
+    agent.compile(optimizer, metrics=["accuracy"])
+    agent.fit(train_env, nb_steps=50000, verbose=2)
 
 
 # %%

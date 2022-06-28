@@ -11,7 +11,7 @@ import numpy as np
 from sklearn.metrics import confusion_matrix
 
 import gym
-from gym.spaces import Discrete, MultiBinary
+from gym.spaces import Discrete, Box, MultiBinary
 
 # %%
 
@@ -46,7 +46,8 @@ class AnomalyDetectionEnv(gym.Env):
         self.action_space = Discrete(
             2) if self.label_type == "last" else MultiBinary(self.n_timesteps)
         # Observation Space: each observation is a time series
-        self.observation_space = Discrete(self.n)
+        self.observation_space = Box(
+            low=-np.inf, high=np.inf, shape=(self.n_timesteps, self.n_features))
 
         # weights for reward
         self.reward_weights = np.array([w_tn, w_fp, w_fn, w_tp])
@@ -61,7 +62,7 @@ class AnomalyDetectionEnv(gym.Env):
         self.state_index = 0
         self.state = self.X[self.state_index]
         self.t = 0
-        return
+        return self.state
 
     def step(self, action):
         """
@@ -127,10 +128,10 @@ class AnomalyDetectionEnv(gym.Env):
         }
         self.t += 1
 
-        self._print("\n".join(
+        """self._print("\n".join(
             json.dumps(info, indent=4)),
             "*" * 25
-        )
+        )"""
 
         return next_state, reward, done, info
 
