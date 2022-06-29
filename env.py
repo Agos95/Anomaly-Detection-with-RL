@@ -47,7 +47,7 @@ class AnomalyDetectionEnv(gym.Env):
             2) if self.label_type == "last" else MultiBinary(self.n_timesteps)
         # Observation Space: each observation is a time series
         self.observation_space = Box(
-            low=-np.inf, high=np.inf, shape=(self.n_timesteps, self.n_features))
+            low=0, high=1, shape=(self.n_timesteps, self.n_features), dtype=self.X.dtype)
 
         # weights for reward
         self.reward_weights = np.array([w_tn, w_fp, w_fn, w_tp])
@@ -87,15 +87,6 @@ class AnomalyDetectionEnv(gym.Env):
         current_state_index = self.state_index
         current_state = self.state
 
-        # ####################### #
-        # MOVE TO NEXT STATE s_t1 #
-        # ####################### #
-
-        # just go to next state without any particular logic
-        # (after last timeseries restart from 0)
-        next_state_index = (current_state_index + 1) % self.n
-        next_state = self.X[next_state_index]
-
         # ########## #
         # GET REWARD #
         # ########## #
@@ -111,11 +102,21 @@ class AnomalyDetectionEnv(gym.Env):
         reward = np.sum(self.reward_weights *
                         confusion_matrix(true_action, action, labels=[0, 1]).ravel())
 
+        # ####################### #
+        # MOVE TO NEXT STATE s_t1 #
+        # ####################### #
+
+        # just go to next state without any particular logic
+        next_state_index = (current_state_index + 1)
+        try:
+            next_state = self.X[next_state_index]
+        except:
+            next_state = None
+
         # move to next state
         self.state_index = next_state_index
         self.state = next_state
-        done = False
-        #done = (self.state == self.n)
+        done = (self.state_index == self.n)
 
         # info
         info = {
