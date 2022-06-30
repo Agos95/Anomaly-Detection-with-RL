@@ -1,4 +1,6 @@
 {
+    "name": "sb3_dqn",
+    "torch_seed": 0,
     "data": {
         "resample": "5min",
         "window": "2H",
@@ -22,9 +24,9 @@
         "linear_dim": 50
     },
     "feature_extractor": {
-        "features_dim": 50,
-        "lstm_dim": 25,
-        "dropout": 0.1
+        "features_dim": 150,
+        "lstm_dim": 100,
+        "dropout": 0.2
     },
     "env": {
         "w_tn": 1.0,

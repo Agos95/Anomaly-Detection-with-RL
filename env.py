@@ -58,6 +58,14 @@ class AnomalyDetectionEnv(gym.Env):
         self.t = 0
 
     def reset(self):
+        """
+        Reset the environment for next episode.
+
+        Returns
+        -------
+        state : array
+            First state of the env.
+        """
         self._print("Resetting the environment.")
         self.state_index = 0
         self.state = self.X[self.state_index]
@@ -99,8 +107,10 @@ class AnomalyDetectionEnv(gym.Env):
             action = [action]
             true_action = [self.y[current_state_index]]
 
-        reward = np.sum(self.reward_weights *
-                        confusion_matrix(true_action, action, labels=[0, 1]).ravel())
+        cm = confusion_matrix(true_action, action, labels=[0, 1])
+
+        reward = self.reward_weights * cm.ravel()
+        reward = np.sum(reward)
 
         # ####################### #
         # MOVE TO NEXT STATE s_t1 #
@@ -121,18 +131,14 @@ class AnomalyDetectionEnv(gym.Env):
         # info
         info = {
             "t": self.t,
-            "State (t)": current_state_index,
-            "Action (t)": action,
-            "Reward (t)": reward,
-            "State (t+1)": next_state_index,
-            "Done": done
+            "state": current_state,
+            "action": action,
+            "true_action": true_action,
+            "reward": reward,
+            "state": next_state,
+            "done": done
         }
         self.t += 1
-
-        """self._print("\n".join(
-            json.dumps(info, indent=4)),
-            "*" * 25
-        )"""
 
         return next_state, reward, done, info
 
